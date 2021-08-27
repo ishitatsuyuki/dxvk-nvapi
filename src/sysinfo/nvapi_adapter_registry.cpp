@@ -67,6 +67,14 @@ namespace dxvk {
         return it != m_nvapiAdapters.end() ? *it : nullptr;
     }
 
+    short NvapiAdapterRegistry::GetAdapterId(NvapiAdapter* handle) const {
+        for (auto i = 0U; i <= m_nvapiAdapters.size(); i++)
+            if (m_nvapiAdapters[i] == handle)
+                return i;
+
+        return -1;
+    }
+
     bool NvapiAdapterRegistry::IsAdapter(NvapiAdapter* handle) const {
         return std::find(m_nvapiAdapters.begin(), m_nvapiAdapters.end(), handle) != m_nvapiAdapters.end();
     }

@@ -92,6 +92,34 @@ TEST_CASE("Topology methods succeed", "[.sysinfo]") {
         REQUIRE(strcmp(name2, "Device2") == 0);
     }
 
+    SECTION("GetGPUIDFromPhysicalGPU succeeds") {
+        NvPhysicalGpuHandle handles[NVAPI_MAX_LOGICAL_GPUS];
+        NvU32 count = 0U;
+        REQUIRE(NvAPI_EnumPhysicalGPUs(handles, &count) == NVAPI_OK);
+
+        NvU32 pGpuId1;
+        REQUIRE(NvAPI_GetGPUIDFromPhysicalGPU(handles[0], &pGpuId1) == NVAPI_OK);
+        REQUIRE(pGpuId1 == 0);
+
+        NvU32 pGpuId2;
+        REQUIRE(NvAPI_GetGPUIDFromPhysicalGPU(handles[1], &pGpuId2) == NVAPI_OK);
+        REQUIRE(pGpuId2 == 1);
+    }
+
+    SECTION("GetPhysicalGPUFromGPUID succeeds") {
+        NvPhysicalGpuHandle handles[NVAPI_MAX_LOGICAL_GPUS];
+        NvU32 count = 0U;
+        REQUIRE(NvAPI_EnumPhysicalGPUs(handles, &count) == NVAPI_OK);
+
+        NvPhysicalGpuHandle handle1;
+        REQUIRE(NvAPI_GetPhysicalGPUFromGPUID(0, &handle1) == NVAPI_OK);
+        REQUIRE(handle1 == handles[0]);
+
+        NvPhysicalGpuHandle handle2;
+        REQUIRE(NvAPI_GetPhysicalGPUFromGPUID(1, &handle2) == NVAPI_OK);
+        REQUIRE(handle2 == handles[1]);
+    }
+
     SECTION("EnumNvidiaDisplayHandle succeeds") {
         NvDisplayHandle handle1 = nullptr;
         REQUIRE(NvAPI_EnumNvidiaDisplayHandle(0U, &handle1) == NVAPI_OK);

@@ -48,6 +48,42 @@ extern "C" {
         return Ok(n);
     }
 
+    NvAPI_Status __cdecl NvAPI_GetGPUIDFromPhysicalGPU(NvPhysicalGpuHandle hPhysicalGpu, NvU32 *pGpuId) {
+        constexpr auto n = __func__;
+
+        if (nvapiAdapterRegistry == nullptr)
+            return ApiNotInitialized(n);
+
+        if (pGpuId == nullptr)
+            return InvalidArgument(n);
+
+        auto adapter = reinterpret_cast<NvapiAdapter*>(hPhysicalGpu);
+        if (!nvapiAdapterRegistry->IsAdapter(adapter))
+            return ExpectedPhysicalGpuHandle(n);
+
+        *pGpuId = nvapiAdapterRegistry->GetAdapterId(adapter);
+
+        return Ok(n);
+    }
+
+    NvAPI_Status __cdecl NvAPI_GetPhysicalGPUFromGPUID(NvU32 gpuId, NvPhysicalGpuHandle *hPhysicalGpu) {
+        constexpr auto n = __func__;
+
+        if (nvapiAdapterRegistry == nullptr)
+            return ApiNotInitialized(n);
+
+        if (hPhysicalGpu == nullptr)
+            return InvalidArgument(n);
+
+        auto adapter = nvapiAdapterRegistry->GetAdapter(gpuId);
+        if (adapter == nullptr)
+            return InvalidArgument(n);
+
+        *hPhysicalGpu = reinterpret_cast<NvPhysicalGpuHandle>(adapter);
+
+        return Ok(n);
+    }
+
     NvAPI_Status __cdecl NvAPI_GetDisplayDriverVersion(NvDisplayHandle hNvDisplay, NV_DISPLAY_DRIVER_VERSION *pVersion) {
         constexpr auto n = __func__;
 

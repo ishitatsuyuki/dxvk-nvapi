@@ -20,6 +20,7 @@ namespace dxvk {
         [[nodiscard]] NvapiAdapter* GetAdapter() const;
         [[nodiscard]] NvapiAdapter* GetAdapter(u_short index) const;
         [[nodiscard]] NvapiAdapter* GetAdapter(const LUID& luid) const;
+        [[nodiscard]] short GetAdapterId(NvapiAdapter* handle) const;
         [[nodiscard]] bool IsAdapter(NvapiAdapter* handle) const;
 
         [[nodiscard]] NvapiOutput* GetOutput(u_short index) const;
