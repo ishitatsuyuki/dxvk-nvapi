@@ -11,6 +11,7 @@ typedef decltype(&NvAPI_Unload) PFN_NvAPI_Unload;
 typedef decltype(&NvAPI_GetInterfaceVersionString) PFN_NvAPI_GetInterfaceVersionString;
 typedef decltype(&NvAPI_SYS_GetDriverAndBranchVersion) PFN_NvAPI_SYS_GetDriverAndBranchVersion;
 typedef decltype(&NvAPI_EnumPhysicalGPUs) PFN_NvAPI_EnumPhysicalGPUs;
+typedef decltype(&NvAPI_GetGPUIDFromPhysicalGPU) PFN_NvAPI_GetGPUIDFromPhysicalGPU;
 typedef decltype(&NvAPI_GPU_GetGPUType) PFN_NvAPI_GPU_GetGPUType;
 typedef decltype(&NvAPI_GPU_GetPCIIdentifiers) PFN_NvAPI_GPU_GetPCIIdentifiers;
 typedef decltype(&NvAPI_GPU_GetFullName) PFN_NvAPI_GPU_GetFullName;
@@ -86,6 +87,7 @@ TEST_CASE("Sysinfo methods succeed against local system", "[system]") {
     auto nvAPI_GetInterfaceVersionString = GetNvAPIProcAddress<PFN_NvAPI_GetInterfaceVersionString>(nvAPI_QueryInterface, "NvAPI_GetInterfaceVersionString");
     auto nvAPI_SYS_GetDriverAndBranchVersion = GetNvAPIProcAddress<PFN_NvAPI_SYS_GetDriverAndBranchVersion>(nvAPI_QueryInterface, "NvAPI_SYS_GetDriverAndBranchVersion");
     auto nvAPI_EnumPhysicalGPUs = GetNvAPIProcAddress<PFN_NvAPI_EnumPhysicalGPUs>(nvAPI_QueryInterface, "NvAPI_EnumPhysicalGPUs");
+    auto nvAPI_GetGPUIDFromPhysicalGPU = GetNvAPIProcAddress<PFN_NvAPI_GetGPUIDFromPhysicalGPU>(nvAPI_QueryInterface, "NvAPI_GetGPUIDFromPhysicalGPU");
     auto nvAPI_GPU_GetGPUType = GetNvAPIProcAddress<PFN_NvAPI_GPU_GetGPUType>(nvAPI_QueryInterface, "NvAPI_GPU_GetGPUType");
     auto nvAPI_GPU_GetPCIIdentifiers = GetNvAPIProcAddress<PFN_NvAPI_GPU_GetPCIIdentifiers>(nvAPI_QueryInterface, "NvAPI_GPU_GetPCIIdentifiers");
     auto nvAPI_GPU_GetFullName = GetNvAPIProcAddress<PFN_NvAPI_GPU_GetFullName>(nvAPI_QueryInterface, "NvAPI_GPU_GetFullName");
@@ -140,6 +142,10 @@ TEST_CASE("Sysinfo methods succeed against local system", "[system]") {
         NvU32 busId;
         REQUIRE(nvAPI_GPU_GetBusId(handle, &busId) == NVAPI_OK);
         std::cout << "    Bus ID:                     PCI:" << std::setw(2) << std::dec << busId << std::endl;
+
+        NvU32 gpuId;
+        REQUIRE(nvAPI_GetGPUIDFromPhysicalGPU(handle, &gpuId) == NVAPI_OK);
+        std::cout << "    Board ID:                   0x" << std::hex << gpuId << std::endl;
 
         NvU32 size;
         REQUIRE(nvAPI_GPU_GetPhysicalFrameBufferSize(handle, &size) == NVAPI_OK);

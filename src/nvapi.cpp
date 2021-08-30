@@ -61,7 +61,9 @@ extern "C" {
         if (!nvapiAdapterRegistry->IsAdapter(adapter))
             return ExpectedPhysicalGpuHandle(n);
 
-        *pGpuId = nvapiAdapterRegistry->GetAdapterId(adapter);
+        // TODO: `nvidia-smi -q` display this value as "Board ID" which seems to be derived from PCI Domain/BUS/Device ID
+        // Do some research if this assumption is correct
+        *pGpuId = adapter->GetBoardId();
 
         return Ok(n);
     }
@@ -75,7 +77,12 @@ extern "C" {
         if (hPhysicalGpu == nullptr)
             return InvalidArgument(n);
 
-        auto adapter = nvapiAdapterRegistry->GetAdapter(gpuId);
+        // TODO: See note above about board ID
+        NvapiAdapter* adapter = nullptr;
+        for (auto i = 0U; i < nvapiAdapterRegistry->GetAdapterCount(); i++)
+            if (nvapiAdapterRegistry->GetAdapter(i)->GetBoardId() == gpuId)
+                adapter = nvapiAdapterRegistry->GetAdapter(i);
+
         if (adapter == nullptr)
             return InvalidArgument(n);
 

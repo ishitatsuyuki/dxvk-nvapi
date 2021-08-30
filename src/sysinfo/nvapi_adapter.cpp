@@ -170,6 +170,12 @@ namespace dxvk {
         return m_devicePciBusProperties.pciBus;
     }
 
+    uint32_t NvapiAdapter::GetBoardId() const {
+        return m_devicePciBusProperties.pciDomain << 16
+            | m_devicePciBusProperties.pciBus << 8
+            | m_devicePciBusProperties.pciDevice;
+    }
+
     uint32_t NvapiAdapter::GetVRamSize() const {
         // The total size of all device-local heaps sometimes do not match what other tools are reporting,
         // though this is best we have.

@@ -92,34 +92,6 @@ TEST_CASE("Topology methods succeed", "[.sysinfo]") {
         REQUIRE(strcmp(name2, "Device2") == 0);
     }
 
-    SECTION("GetGPUIDFromPhysicalGPU succeeds") {
-        NvPhysicalGpuHandle handles[NVAPI_MAX_LOGICAL_GPUS];
-        NvU32 count = 0U;
-        REQUIRE(NvAPI_EnumPhysicalGPUs(handles, &count) == NVAPI_OK);
-
-        NvU32 pGpuId1;
-        REQUIRE(NvAPI_GetGPUIDFromPhysicalGPU(handles[0], &pGpuId1) == NVAPI_OK);
-        REQUIRE(pGpuId1 == 0);
-
-        NvU32 pGpuId2;
-        REQUIRE(NvAPI_GetGPUIDFromPhysicalGPU(handles[1], &pGpuId2) == NVAPI_OK);
-        REQUIRE(pGpuId2 == 1);
-    }
-
-    SECTION("GetPhysicalGPUFromGPUID succeeds") {
-        NvPhysicalGpuHandle handles[NVAPI_MAX_LOGICAL_GPUS];
-        NvU32 count = 0U;
-        REQUIRE(NvAPI_EnumPhysicalGPUs(handles, &count) == NVAPI_OK);
-
-        NvPhysicalGpuHandle handle1;
-        REQUIRE(NvAPI_GetPhysicalGPUFromGPUID(0, &handle1) == NVAPI_OK);
-        REQUIRE(handle1 == handles[0]);
-
-        NvPhysicalGpuHandle handle2;
-        REQUIRE(NvAPI_GetPhysicalGPUFromGPUID(1, &handle2) == NVAPI_OK);
-        REQUIRE(handle2 == handles[1]);
-    }
-
     SECTION("EnumNvidiaDisplayHandle succeeds") {
         NvDisplayHandle handle1 = nullptr;
         REQUIRE(NvAPI_EnumNvidiaDisplayHandle(0U, &handle1) == NVAPI_OK);
@@ -342,6 +314,38 @@ TEST_CASE("Sysinfo methods succeed", "[.sysinfo]") {
         REQUIRE(version.drvVersion == args.expectedVersion);
 
         ::SetEnvironmentVariableA("DXVK_NVAPI_DRIVER_VERSION", "");
+    }
+
+    SECTION("GetGPUIDFromPhysicalGPU / GetPhysicalGPUFromGPUID succeeds") {
+        ALLOW_CALL(*vulkan, GetDeviceExtensions(_, _)) // NOLINT(bugprone-use-after-move)
+            .RETURN(std::set<std::string>{VK_EXT_PCI_BUS_INFO_EXTENSION_NAME});
+        ALLOW_CALL(*vulkan, GetPhysicalDeviceProperties2(_, _, _))
+            .LR_SIDE_EFFECT(
+                ConfigureGetPhysicalDeviceProperties2(_3,
+                    [](auto props, auto idProps, auto pciBusInfoProps, auto driverProps, auto fragmentShadingRateProps) {
+                        pciBusInfoProps->pciDomain = 0x01;
+                        pciBusInfoProps->pciBus = 0x02;
+                        pciBusInfoProps->pciDevice = 0x03;
+                    })
+            );
+
+        SetupResourceFactory(std::move(dxgiFactory), std::move(vulkan), std::move(nvml));
+        REQUIRE(NvAPI_Initialize() == NVAPI_OK);
+
+        NvPhysicalGpuHandle handle;
+        REQUIRE(NvAPI_SYS_GetPhysicalGpuFromDisplayId(0, &handle) == NVAPI_OK);
+
+        SECTION("GetGPUIDFromPhysicalGPU succeeds") {
+            NvU32 gpuId;
+            REQUIRE(NvAPI_GetGPUIDFromPhysicalGPU(handle, &gpuId) == NVAPI_OK);
+            REQUIRE(gpuId == 0x10203);
+        }
+
+        SECTION("GetPhysicalGPUFromGPUID succeeds") {
+            NvPhysicalGpuHandle handleFromGpuId;
+            REQUIRE(NvAPI_GetPhysicalGPUFromGPUID(0x10203, &handleFromGpuId) == NVAPI_OK);
+            REQUIRE(handleFromGpuId == handle);
+        }
     }
 
     SECTION("GetGPUType returns OK") {
