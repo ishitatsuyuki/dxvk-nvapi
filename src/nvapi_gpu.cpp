@@ -174,6 +174,38 @@ extern "C" {
         return Ok(n);
     }
 
+    NvAPI_Status __cdecl NvAPI_GPU_CudaEnumComputeCapableGpus(NV_UNKNOWN *pParams) {
+        constexpr auto n = __func__;
+
+        if (nvapiAdapterRegistry == nullptr)
+            return ApiNotInitialized(n);
+
+        if (pParams == nullptr)
+            return InvalidArgument(n);
+
+        if (pParams->version != NV_UNKNOWN_V1_VER)
+            return IncompatibleStructVersion(n);
+
+        auto cudaCapableGpuCount = 0U;
+        for (auto i = 0U; i < nvapiAdapterRegistry->GetAdapterCount(); i++) {
+            auto adapter = nvapiAdapterRegistry->GetAdapter(i);
+            // TODO: Think about testing that nvcuda.dll could be loaded
+            if (
+                adapter->GetDriverId() != VK_DRIVER_ID_NVIDIA_PROPRIETARY ||
+                adapter->GetArchitectureId() < NV_GPU_ARCHITECTURE_GM200) // Maxwell is the oldest generation we can detect
+                continue;
+
+            pParams->gpus[cudaCapableGpuCount].hPhysicalGpu = reinterpret_cast<NvPhysicalGpuHandle>(adapter);
+            pParams->gpus[cudaCapableGpuCount].unknown2 = 11; // TODO: validate
+            // TODO: other fields if available
+            cudaCapableGpuCount++;
+        }
+
+        pParams->gpu_count = cudaCapableGpuCount;
+
+        return Ok(n);
+    }
+
     NvAPI_Status __cdecl NvAPI_GPU_GetVbiosVersionString(NvPhysicalGpuHandle hPhysicalGpu, NvAPI_ShortString szBiosRevision) {
         constexpr auto n = __func__;
 
