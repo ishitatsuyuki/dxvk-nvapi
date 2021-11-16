@@ -61,9 +61,10 @@ extern "C" {
             return IncompatibleStructVersion(n);
 
         // Ignore hNvDisplay and query the first adapter
-        pVersion->drvVersion = nvapiAdapterRegistry->GetAdapter()->GetDriverVersion();
+        auto version = nvapiAdapterRegistry->GetAdapter()->GetDriverVersion();
+        pVersion->drvVersion = version;
         pVersion->bldChangeListNum = 0;
-        strcpy(pVersion->szBuildBranchString, DXVK_NVAPI_VERSION);
+        strcpy(pVersion->szBuildBranchString, str::format("r", (version / 100), "_", DXVK_NVAPI_VERSION).c_str());
         strcpy(pVersion->szAdapterString, nvapiAdapterRegistry->GetAdapter()->GetDeviceName().c_str());
 
         return Ok(n);

@@ -378,6 +378,7 @@ TEST_CASE("Sysinfo methods succeed", "[.sysinfo]") {
         NvAPI_ShortString branch;
         REQUIRE(NvAPI_SYS_GetDriverAndBranchVersion(&version, branch) == NVAPI_OK);
         REQUIRE(version == 47035);
+        REQUIRE(std::string(branch).rfind(str::format("r470_"), 0) == 0);
         REQUIRE(std::string(branch).length() > 0);
     }
 
@@ -414,7 +415,7 @@ TEST_CASE("Sysinfo methods succeed", "[.sysinfo]") {
         REQUIRE(NvAPI_GetDisplayDriverVersion(handle, &version) == NVAPI_OK);
         REQUIRE(version.drvVersion == args.expectedVersion);
         REQUIRE(strcmp(version.szAdapterString, "GPU0") == 0);
-        REQUIRE(std::string(version.szBuildBranchString).length() > 0);
+        REQUIRE(std::string(version.szBuildBranchString).rfind(str::format("r", args.expectedVersion / 100, "_"), 0) == 0);
     }
 
     SECTION("GetDisplayDriverVersion with version override returns OK") {

@@ -30,8 +30,9 @@ extern "C" {
         if (pDriverVersion == nullptr || szBuildBranchString == nullptr)
             return InvalidArgument(n);
 
-        *pDriverVersion = nvapiAdapterRegistry->GetAdapter()->GetDriverVersion();
-        strcpy(szBuildBranchString, DXVK_NVAPI_VERSION);
+        auto version = nvapiAdapterRegistry->GetAdapter()->GetDriverVersion();
+        *pDriverVersion = version;
+        strcpy(szBuildBranchString, str::format("r", (version / 100), "_", DXVK_NVAPI_VERSION).c_str());
 
         return Ok(n);
     }
