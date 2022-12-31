@@ -1,6 +1,8 @@
 #include "nvapi_private.h"
 #include "nvapi_globals.h"
 #include "util/util_statuscode.h"
+#include "dxvk/dxvk_interfaces.h"
+#include "d3d12/nvapi_d3d12_device.h"
 
 extern "C" {
     using namespace dxvk;
@@ -115,7 +117,13 @@ extern "C" {
         if (!nvapiD3dInstance->IsReflexAvailable())
             return NoImplementation(n, alreadyLoggedNoLfx);
 
-        nvapiD3dInstance->Sleep();
+        nvapiD3dInstance->GetLfx2Instance()->Sleep();
+        if (nvapiD3dInstance->IsReflexEnabled() && !nvapiD3dInstance->UseLatencyMarkers()) {
+            auto lfx2Ext = nvapiD3dInstance->GetLfx2DeviceExt(pDevice);
+            if (lfx2Ext.ptr()) {
+                nvapiD3dInstance->GetLfx2Instance()->SleepImplicit(lfx2Ext);
+            }
+        }
 
         return Ok(n, alreadyLoggedOk);
     }
@@ -133,11 +141,13 @@ extern "C" {
         if (!nvapiD3dInstance->IsReflexAvailable())
             return NoImplementation(n, alreadyLoggedNoLfx);
 
-        nvapiD3dInstance->SetReflexEnabled(pSetSleepModeParams->bLowLatencyMode);
-        if (pSetSleepModeParams->bLowLatencyMode)
-            nvapiD3dInstance->SetTargetFrameTime(pSetSleepModeParams->minimumIntervalUs);
+        Com<ID3DLfx2ExtDevice> context = nvapiD3dInstance->GetLfx2DeviceExt(pDevice);
+        if (!context.ptr())
+            return NoImplementation(n, alreadyLoggedNoLfx);
 
-        return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? (str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us")) : "Disabled", ")"));
+        nvapiD3dInstance->SetReflexEnabled(pSetSleepModeParams->bLowLatencyMode);
+
+        return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us") : "Disabled", ")"));
     }
 
     NvAPI_Status __cdecl NvAPI_D3D_GetSleepStatus(IUnknown* pDevice, NV_GET_SLEEP_STATUS_PARAMS* pGetSleepStatusParams) {
@@ -164,6 +174,13 @@ extern "C" {
 
     NvAPI_Status __cdecl NvAPI_D3D_SetLatencyMarker(IUnknown* pDev, NV_LATENCY_MARKER_PARAMS* pSetLatencyMarkerParams) {
         static bool alreadyLogged = false;
-        return NoImplementation(__func__, alreadyLogged);
+        if (pSetLatencyMarkerParams->version != NV_LATENCY_MARKER_PARAMS_VER1)
+            return IncompatibleStructVersion(__func__);
+
+        Com<ID3DLfx2ExtDevice> context = nvapiD3dInstance->GetLfx2DeviceExt(pDev);
+        Lfx2* lfx2 = nvapiD3dInstance->GetLfx2Instance();
+        lfx2->Mark(pSetLatencyMarkerParams->frameID, pSetLatencyMarkerParams->markerType, context);
+
+        return Ok(__func__, alreadyLogged);
     }
 }

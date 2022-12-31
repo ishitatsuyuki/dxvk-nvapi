@@ -177,4 +177,5 @@ namespace dxvk {
         m_commandListMap.clear();
         m_cubinSmemMap.clear();
     }
+
 }
