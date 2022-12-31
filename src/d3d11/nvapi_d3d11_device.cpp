@@ -199,4 +199,16 @@ namespace dxvk {
 
         return deviceContextExt;
     }
+
+    Com<ID3D11VkExtContext2> NvapiD3d11Device::GetLfx2DeviceContext(IUnknown* deviceOrContext) {
+        std::scoped_lock lock(m_lfx2ExtContextMutex);
+        Com<ID3D11VkExtContext> context = GetCachedDeviceContextExt(deviceOrContext, m_lfx2ExtContextMap, D3D11_VK_EXTENSION::D3D11_VK_LATENCYFLEX2);
+        if (context == nullptr)
+            return nullptr;
+        Com<ID3D11VkExtContext2> d3d11ExtContext2;
+        if (FAILED(context->QueryInterface(IID_PPV_ARGS(&d3d11ExtContext2))))
+            return nullptr;
+
+        return d3d11ExtContext2;
+    }
 }

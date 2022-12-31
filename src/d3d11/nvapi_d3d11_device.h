@@ -24,16 +24,20 @@ namespace dxvk {
         static bool CreateSamplerStateAndGetDriverHandle(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pSamplerDesc, ID3D11SamplerState** ppSamplerState, uint32_t* pDriverHandle);
         static bool IsFatbinPTXSupported(ID3D11Device* pDevice);
 
+        [[nodiscard]] static Com<ID3D11VkExtContext2> GetLfx2DeviceContext(IUnknown* deviceOrContext);
+
       private:
         inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_depthBoundsDeviceOrContextMap;
         inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_barrierControlDeviceOrContextMap;
         inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_multiDrawIndirectContextMap;
         inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_binaryImportContextMap;
+        inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_lfx2ExtContextMap;
 
         inline static std::mutex m_depthBoundsDeviceOrContextMutex;
         inline static std::mutex m_barrierControlDeviceOrContextMutex;
         inline static std::mutex m_multiDrawIndirectContextMutex;
         inline static std::mutex m_binaryImportContextMutex;
+        inline static std::mutex m_lfx2ExtContextMutex;
 
         [[nodiscard]] static Com<ID3D11VkExtContext> GetSdbtDeviceContext(IUnknown* deviceOrContext);
         [[nodiscard]] static Com<ID3D11VkExtContext> GetBarrierControlDeviceContext(IUnknown* deviceOrContext);
