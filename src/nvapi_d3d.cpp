@@ -1,6 +1,8 @@
 #include "nvapi_private.h"
 #include "nvapi_globals.h"
 #include "util/util_statuscode.h"
+#include "dxvk/dxvk_interfaces.h"
+#include "d3d11/nvapi_d3d11_device.h"
 
 extern "C" {
     using namespace dxvk;
@@ -115,7 +117,7 @@ extern "C" {
         if (!nvapiD3dInstance->IsReflexAvailable())
             return NoImplementation(n, alreadyLoggedNoLfx);
 
-        nvapiD3dInstance->Sleep();
+        nvapiD3dInstance->GetLfx2Instance()->Sleep();
 
         return Ok(n, alreadyLoggedOk);
     }
@@ -133,9 +135,11 @@ extern "C" {
         if (!nvapiD3dInstance->IsReflexAvailable())
             return NoImplementation(n, alreadyLoggedNoLfx);
 
+        Com<ID3D11VkExtContext2> context = NvapiD3d11Device::GetLfx2DeviceContext(pDevice);
+        if (!context.ptr())
+            return NoImplementation(n, alreadyLoggedNoLfx);
+
         nvapiD3dInstance->SetReflexEnabled(pSetSleepModeParams->bLowLatencyMode);
-        if (pSetSleepModeParams->bLowLatencyMode)
-            nvapiD3dInstance->SetTargetFrameTime(pSetSleepModeParams->minimumIntervalUs);
 
         return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? (str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us")) : "Disabled", ")"));
     }
@@ -164,6 +168,14 @@ extern "C" {
 
     NvAPI_Status __cdecl NvAPI_D3D_SetLatencyMarker(IUnknown* pDev, NV_LATENCY_MARKER_PARAMS* pSetLatencyMarkerParams) {
         static bool alreadyLogged = false;
-        return NoImplementation(__func__, alreadyLogged);
+        if (pSetLatencyMarkerParams->version != NV_LATENCY_MARKER_PARAMS_VER1)
+            return IncompatibleStructVersion(__func__);
+
+        Com<ID3D11VkExtContext2> context = NvapiD3d11Device::GetLfx2DeviceContext(pDev);
+
+        Lfx2* lfx2 = nvapiD3dInstance->GetLfx2Instance();
+        lfx2->Mark(pSetLatencyMarkerParams->frameID, pSetLatencyMarkerParams->markerType, context);
+
+        return Ok(__func__, alreadyLogged);
     }
 }

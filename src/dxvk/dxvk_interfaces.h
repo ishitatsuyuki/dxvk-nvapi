@@ -11,12 +11,13 @@
     inline GUID const& __mingw_uuidof<iface>() { return iface::guid; }
 
 enum D3D11_VK_EXTENSION : uint32_t {
-    D3D11_VK_EXT_MULTI_DRAW_INDIRECT = 0,
-    D3D11_VK_EXT_MULTI_DRAW_INDIRECT_COUNT = 1,
-    D3D11_VK_EXT_DEPTH_BOUNDS = 2,
-    D3D11_VK_EXT_BARRIER_CONTROL = 3,
-    D3D11_VK_NVX_BINARY_IMPORT = 4,
-    D3D11_VK_NVX_IMAGE_VIEW_HANDLE = 5,
+    D3D11_VK_EXT_MULTI_DRAW_INDIRECT        = 0,
+    D3D11_VK_EXT_MULTI_DRAW_INDIRECT_COUNT  = 1,
+    D3D11_VK_EXT_DEPTH_BOUNDS               = 2,
+    D3D11_VK_EXT_BARRIER_CONTROL            = 3,
+    D3D11_VK_NVX_BINARY_IMPORT              = 4,
+    D3D11_VK_NVX_IMAGE_VIEW_HANDLE          = 5,
+    D3D11_VK_LATENCYFLEX2                   = 6,
 };
 
 enum D3D11_VK_BARRIER_CONTROL : uint32_t {
@@ -175,9 +176,21 @@ ID3D11VkExtContext1 : public ID3D11VkExtContext {
         uint32_t numWriteResources) = 0;
 };
 
+MIDL_INTERFACE("6e65f21a-0ecd-4e76-8faf-9e9afa4093a4")
+ID3D11VkExtContext2 : public ID3D11VkExtContext1 {
+
+    virtual bool STDMETHODCALLTYPE MarkRenderStartLFX2(
+        void*                   lfx2Frame) = 0;
+
+    virtual bool STDMETHODCALLTYPE MarkRenderEndLFX2(
+        void*                   lfx2Frame) = 0;
+
+};
+
 DXVK_DEFINE_GUID(IDXGIVkInteropFactory)
 DXVK_DEFINE_GUID(IDXGIVkInteropAdapter)
 DXVK_DEFINE_GUID(ID3D11VkExtDevice)
 DXVK_DEFINE_GUID(ID3D11VkExtDevice1)
 DXVK_DEFINE_GUID(ID3D11VkExtContext)
 DXVK_DEFINE_GUID(ID3D11VkExtContext1)
+DXVK_DEFINE_GUID(ID3D11VkExtContext2)

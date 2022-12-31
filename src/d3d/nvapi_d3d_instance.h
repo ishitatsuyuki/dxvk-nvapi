@@ -13,12 +13,14 @@ namespace dxvk {
         [[nodiscard]] bool IsReflexAvailable();
         [[nodiscard]] bool IsReflexEnabled() const;
         void SetReflexEnabled(bool value);
-        void Sleep();
-        void SetTargetFrameTime(uint64_t frameTimeUs);
+        [[nodiscard]] bool UseLatencyMarkers() const;
+        void SetUseLatencyMarkers(bool value);
+        [[nodiscard]] Lfx2 *GetLfx2Instance() const;
 
       private:
         ResourceFactory& m_resourceFactory;
-        std::unique_ptr<Lfx> m_lfx;
+        std::unique_ptr<Lfx2> m_lfx;
         bool m_isLfxEnabled = false;
+        bool m_useLatencyMarkers = false;
     };
 }

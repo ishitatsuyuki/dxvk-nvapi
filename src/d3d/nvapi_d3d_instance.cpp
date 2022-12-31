@@ -9,12 +9,14 @@ namespace dxvk {
 
     void NvapiD3dInstance::Initialize() {
         m_lfx = m_resourceFactory.CreateLfx();
-        if (m_lfx->IsAvailable())
-            log::write("LatencyFleX loaded and initialized successfully");
     }
 
     bool NvapiD3dInstance::IsReflexAvailable() {
         return m_lfx->IsAvailable();
+    }
+
+    Lfx2* NvapiD3dInstance::GetLfx2Instance() const {
+        return &*m_lfx;
     }
 
     bool NvapiD3dInstance::IsReflexEnabled() const {
@@ -25,13 +27,11 @@ namespace dxvk {
         m_isLfxEnabled = value;
     }
 
-    void NvapiD3dInstance::Sleep() {
-        if (m_isLfxEnabled)
-            m_lfx->WaitAndBeginFrame();
+    bool NvapiD3dInstance::UseLatencyMarkers() const {
+        return m_useLatencyMarkers;
     }
 
-    void NvapiD3dInstance::SetTargetFrameTime(uint64_t frameTimeUs) {
-        constexpr uint64_t kNanoInMicro = 1000;
-        m_lfx->SetTargetFrameTime(frameTimeUs * kNanoInMicro);
+    void NvapiD3dInstance::SetUseLatencyMarkers(bool value) {
+        m_useLatencyMarkers = value;
     }
 }
