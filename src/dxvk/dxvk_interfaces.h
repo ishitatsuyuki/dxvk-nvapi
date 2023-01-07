@@ -100,6 +100,13 @@ ID3D11VkExtDevice1 : public ID3D11VkExtDevice {
         uint32_t * pCudaTextureHandle) = 0;
 };
 
+MIDL_INTERFACE("a1a5185c-0c43-4608-91a0-97a0cd098d48")
+ID3D11VkExtDevice2 : public ID3D11VkExtDevice1 {
+
+    virtual void* STDMETHODCALLTYPE GetImplicitContextLFX2() = 0;
+
+};
+
 MIDL_INTERFACE("fd0bca13-5cb6-4c3a-987e-4750de2ca791")
 ID3D11VkExtContext : public IUnknown {
     static const GUID guid;
@@ -172,6 +179,7 @@ ID3D11VkExtContext2 : public ID3D11VkExtContext1 {
 DXVK_DEFINE_GUID(IDXGIVkInteropAdapter)
 DXVK_DEFINE_GUID(ID3D11VkExtDevice)
 DXVK_DEFINE_GUID(ID3D11VkExtDevice1)
+DXVK_DEFINE_GUID(ID3D11VkExtDevice2)
 DXVK_DEFINE_GUID(ID3D11VkExtContext)
 DXVK_DEFINE_GUID(ID3D11VkExtContext1)
 DXVK_DEFINE_GUID(ID3D11VkExtContext2)

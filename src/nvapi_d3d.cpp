@@ -3,6 +3,7 @@
 #include "util/util_statuscode.h"
 #include "dxvk/dxvk_interfaces.h"
 #include "d3d11/nvapi_d3d11_device.h"
+#include "d3d12/nvapi_d3d12_device.h"
 
 extern "C" {
     using namespace dxvk;
@@ -118,6 +119,16 @@ extern "C" {
             return NoImplementation(n, alreadyLoggedNoLfx);
 
         nvapiD3dInstance->GetLfx2Instance()->Sleep();
+        if (nvapiD3dInstance->IsReflexEnabled() && !nvapiD3dInstance->UseLatencyMarkers()) {
+            auto d3d11Device = NvapiD3d11Device::GetLfx2DeviceExt(pDevice);
+            if (d3d11Device.ptr()) {
+                nvapiD3dInstance->GetLfx2Instance()->SleepImplicit(d3d11Device);
+            }
+            else {
+                auto d3d12Device = NvapiD3d12Device::GetLfx2DeviceExt(pDevice);
+                nvapiD3dInstance->GetLfx2Instance()->SleepImplicit(d3d12Device);
+            }
+        }
 
         return Ok(n, alreadyLoggedOk);
     }
@@ -136,12 +147,15 @@ extern "C" {
             return NoImplementation(n, alreadyLoggedNoLfx);
 
         Com<ID3D11VkExtContext2> context = NvapiD3d11Device::GetLfx2DeviceContext(pDevice);
-        if (!context.ptr())
-            return NoImplementation(n, alreadyLoggedNoLfx);
+        if (!context.ptr()) {
+            auto d3d12Device = NvapiD3d12Device::GetLfx2DeviceExt(pDevice);
+            if (!d3d12Device.ptr())
+                return NoImplementation(n, alreadyLoggedNoLfx);
+        }
 
         nvapiD3dInstance->SetReflexEnabled(pSetSleepModeParams->bLowLatencyMode);
 
-        return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? (str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us")) : "Disabled", ")"));
+        return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? (str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us/Markers ", pSetSleepModeParams->bUseMarkersToOptimize ? "On" : "Off")) : "Disabled", ")"));
     }
 
     NvAPI_Status __cdecl NvAPI_D3D_GetSleepStatus(IUnknown* pDevice, NV_GET_SLEEP_STATUS_PARAMS* pGetSleepStatusParams) {
