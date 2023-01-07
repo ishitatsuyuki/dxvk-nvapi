@@ -1,9 +1,13 @@
 #include "../util/util_log.h"
 #include "nvapi_d3d_instance.h"
+#include "util/util_env.h"
 
 namespace dxvk {
     NvapiD3dInstance::NvapiD3dInstance(ResourceFactory& resourceFactory)
-        : m_resourceFactory(resourceFactory) {}
+        : m_resourceFactory(resourceFactory) {
+        auto latencyMarkersEnv = env::getEnvVariable("DXVK_NVAPI_USE_LATENCY_MARKERS");
+        m_useLatencyMarkers = latencyMarkersEnv.empty() || latencyMarkersEnv != "0";
+    }
 
     NvapiD3dInstance::~NvapiD3dInstance() = default;
 
@@ -29,9 +33,5 @@ namespace dxvk {
 
     bool NvapiD3dInstance::UseLatencyMarkers() const {
         return m_useLatencyMarkers;
-    }
-
-    void NvapiD3dInstance::SetUseLatencyMarkers(bool value) {
-        m_useLatencyMarkers = value;
     }
 }

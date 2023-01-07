@@ -21,6 +21,6 @@ namespace dxvk {
         ResourceFactory& m_resourceFactory;
         std::unique_ptr<Lfx2> m_lfx;
         bool m_isLfxEnabled = false;
-        bool m_useLatencyMarkers = false;
+        bool m_useLatencyMarkers;
     };
 }

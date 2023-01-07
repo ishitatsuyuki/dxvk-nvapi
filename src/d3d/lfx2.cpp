@@ -28,6 +28,14 @@ namespace dxvk {
         LOAD_PFN(MarkSection);
         LOAD_PFN(SleepUntil);
         LOAD_PFN(TimestampNow);
+#ifdef _WIN32
+        LOAD_PFN(TimestampFromQpc);
+#endif
+        LOAD_PFN(ImplicitContextCreate);
+        LOAD_PFN(ImplicitContextRelease);
+        LOAD_PFN(ImplicitContextReset);
+        LOAD_PFN(FrameCreateImplicit);
+        LOAD_PFN(FrameDequeueImplicit);
 
 #undef LOAD_PFN
 
@@ -88,7 +96,7 @@ namespace dxvk {
         }
 
         std::unique_lock<std::mutex> lock(m_frameMapMutex);
-        const lfx2Frame* frame;
+        lfx2Frame* frame;
         if (type == SIMULATION_START) {
             EnsureFrame();
             m_frameMap[frame_id] = m_nextFrame;
@@ -114,10 +122,12 @@ namespace dxvk {
 
         MarkSection(frame, section, markType, TimestampNow());
 
-        if (type == RENDERSUBMIT_START) {
-            d3d11Context->MarkRenderStartLFX2((void*)frame);
-        } else if (type == RENDERSUBMIT_END) {
-            d3d11Context->MarkRenderEndLFX2((void*)frame);
+        if (d3d11Context.ptr()) {
+            if (type == RENDERSUBMIT_START) {
+                d3d11Context->MarkRenderStartLFX2((void*)frame);
+            } else if (type == RENDERSUBMIT_END) {
+                d3d11Context->MarkRenderEndLFX2((void*)frame);
+            }
         }
 
         lock.lock();
@@ -134,6 +144,27 @@ namespace dxvk {
             lfx2Timestamp sleepTarget;
             m_nextFrame = FrameCreate(m_lfxContext, &sleepTarget);
         }
+    }
+
+    void Lfx2::SleepImplicit(Com<ID3D11VkExtDevice2>& d3d11Device) {
+        lfx2Timestamp sleepTarget;
+        lfx2Frame* implicitFrame = FrameCreateImplicit(static_cast<lfx2ImplicitContext*>(d3d11Device->GetImplicitContextLFX2()), &sleepTarget);
+
+        SleepUntil(sleepTarget);
+        MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeBegin, TimestampNow());
+        MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeEnd, TimestampNow());
+        FrameRelease(implicitFrame);
+    }
+
+    void Lfx2::SleepImplicit(Com<ID3D12DeviceLfx2>& d3d12Device) {
+        lfx2Timestamp sleepTarget;
+        lfx2Frame* implicitFrame;
+
+        d3d12Device->EnqueueFrameLFX2(&sleepTarget, reinterpret_cast<void**>(&implicitFrame));
+        SleepUntil(sleepTarget);
+        MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeBegin, TimestampNow());
+        MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeEnd, TimestampNow());
+        FrameRelease(implicitFrame);
     }
 
     template <typename T>

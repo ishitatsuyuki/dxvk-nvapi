@@ -4,6 +4,7 @@
 #include "../nvapi_private.h"
 #include "dxvk/dxvk_interfaces.h"
 #include "util/com_pointer.h"
+#include "vkd3d-proton/vkd3d-proton_interfaces.h"
 
 namespace dxvk {
     class Lfx2 {
@@ -13,6 +14,8 @@ namespace dxvk {
 
         [[nodiscard]] virtual bool IsAvailable() const;
         virtual void Sleep();
+        virtual void SleepImplicit(Com<ID3D11VkExtDevice2> &d3d11Device);
+        virtual void SleepImplicit(Com<ID3D12DeviceLfx2> &d3d12Device);
         virtual void Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3D11VkExtContext2> &d3d11Context);
 
       private:
@@ -28,6 +31,14 @@ namespace dxvk {
         DECLARE_PFN(MarkSection);
         DECLARE_PFN(SleepUntil);
         DECLARE_PFN(TimestampNow);
+#ifdef _WIN32
+        DECLARE_PFN(TimestampFromQpc);
+#endif
+        DECLARE_PFN(ImplicitContextCreate);
+        DECLARE_PFN(ImplicitContextRelease);
+        DECLARE_PFN(ImplicitContextReset);
+        DECLARE_PFN(FrameCreateImplicit);
+        DECLARE_PFN(FrameDequeueImplicit);
 
 #undef DECLARE_PFN
 
@@ -37,12 +48,12 @@ namespace dxvk {
         void EnsureFrame();
 
         std::mutex m_frameMapMutex;
-        std::map<uint64_t, const lfx2Frame*> m_frameMap;
+        std::map<uint64_t, lfx2Frame*> m_frameMap;
         std::unordered_map<uint64_t, uint32_t> m_callsExpectedByFrame;
 
         HMODULE m_lfxModule{};
-        const lfx2Context* m_lfxContext{};
-        const lfx2Frame* m_nextFrame{};
+        lfx2Context* m_lfxContext{};
+        lfx2Frame* m_nextFrame{};
 
         static constexpr uint64_t kMaxInflightFrames = 64;
     };

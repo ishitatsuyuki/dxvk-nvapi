@@ -118,4 +118,20 @@ namespace dxvk {
         m_CommandListMap.emplace(commandList, commandListExt.ptr());
         return commandListExt;
     }
+
+    Com<ID3D12DeviceLfx2> NvapiD3d12Device::GetLfx2DeviceExt(IUnknown* pDevice) {
+        static std::mutex map_mutex;
+        static std::unordered_map<IUnknown*, ID3D12DeviceLfx2*> cacheMap;
+
+        std::scoped_lock lock(map_mutex);
+        auto it = cacheMap.find(pDevice);
+        if (it != cacheMap.end())
+            return it->second;
+        Com<ID3D12DeviceLfx2> d3d12DeviceLfx;
+        if (FAILED(pDevice->QueryInterface(IID_PPV_ARGS(&d3d12DeviceLfx))))
+            d3d12DeviceLfx = nullptr;
+
+        cacheMap.emplace(pDevice, d3d12DeviceLfx.ptr());
+        return d3d12DeviceLfx;
+    }
 }
