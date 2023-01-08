@@ -14,8 +14,9 @@ namespace dxvk {
         [[nodiscard]] bool IsReflexEnabled() const;
         void SetReflexEnabled(bool value);
         [[nodiscard]] bool UseLatencyMarkers() const;
-        void SetUseLatencyMarkers(bool value);
         [[nodiscard]] Lfx2 *GetLfx2Instance() const;
+
+        Com<ID3DLfx2ExtDevice> GetLfx2DeviceExt(IUnknown* pDevice);
 
       private:
         ResourceFactory& m_resourceFactory;

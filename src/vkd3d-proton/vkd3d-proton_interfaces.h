@@ -98,13 +98,5 @@ ID3D12GraphicsCommandListExt : public IUnknown {
         UINT32 param_size) = 0;
 };
 
-MIDL_INTERFACE("0096227d-5494-4e19-9686-4f816fc36345")
-ID3D12DeviceLfx2 : public IUnknown
-{
-    static const GUID guid;
-    virtual void EnqueueFrameLFX2(UINT64 *out_timestamp, void *out_frame) = 0;
-};
-
 VKD3D_PROTON_GUID(ID3D12DeviceExt)
 VKD3D_PROTON_GUID(ID3D12GraphicsCommandListExt)
-VKD3D_PROTON_GUID(ID3D12DeviceLfx2)

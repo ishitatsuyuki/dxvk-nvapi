@@ -200,34 +200,4 @@ namespace dxvk {
         return deviceContextExt;
     }
 
-    Com<ID3D11VkExtContext2> NvapiD3d11Device::GetLfx2DeviceContext(IUnknown* deviceOrContext) {
-        static std::mutex map_mutex;
-        static std::unordered_map<IUnknown*, ID3D11VkExtContext*> map;
-
-        std::scoped_lock lock(map_mutex);
-        Com<ID3D11VkExtContext> context = GetCachedDeviceContextExt(deviceOrContext, map, D3D11_VK_EXTENSION::D3D11_VK_LATENCYFLEX2);
-        if (context == nullptr)
-            return nullptr;
-        Com<ID3D11VkExtContext2> d3d11ExtContext2;
-        if (FAILED(context->QueryInterface(IID_PPV_ARGS(&d3d11ExtContext2))))
-            return nullptr;
-
-        return d3d11ExtContext2;
-    }
-
-    Com<ID3D11VkExtDevice2> NvapiD3d11Device::GetLfx2DeviceExt(IUnknown* deviceOrContext) {
-        static std::mutex map_mutex;
-        static std::unordered_map<IUnknown*, ID3D11VkExtDevice2*> cacheMap;
-
-        std::scoped_lock lock(map_mutex);
-        auto it = cacheMap.find(deviceOrContext);
-        if (it != cacheMap.end())
-            return it->second;
-        Com<ID3D11VkExtDevice2> d3d11ExtDevice2;
-        if (FAILED(deviceOrContext->QueryInterface(IID_PPV_ARGS(&d3d11ExtDevice2))))
-            d3d11ExtDevice2 = nullptr;
-
-        cacheMap.emplace(deviceOrContext, d3d11ExtDevice2.ptr());
-        return d3d11ExtDevice2;
-    }
 }

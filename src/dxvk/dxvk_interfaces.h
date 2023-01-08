@@ -118,11 +118,15 @@ ID3D11VkExtDevice1 : public ID3D11VkExtDevice {
         uint32_t * pCudaTextureHandle) = 0;
 };
 
-MIDL_INTERFACE("a1a5185c-0c43-4608-91a0-97a0cd098d48")
-ID3D11VkExtDevice2 : public ID3D11VkExtDevice1 {
+MIDL_INTERFACE("851a9f0f-5da0-4850-b563-a7bbc414f4e6")
+ID3DLfx2ExtDevice : public IUnknown {
+    static const GUID guid;
 
-    virtual void* STDMETHODCALLTYPE GetImplicitContextLFX2() = 0;
+    virtual void STDMETHODCALLTYPE MarkRenderStart(void *frame) = 0;
 
+    virtual void STDMETHODCALLTYPE MarkRenderEnd(void *frame) = 0;
+
+    virtual void STDMETHODCALLTYPE ImplicitBeginFrame(uint64_t *outTimestamp, void *outFrame) = 0;
 };
 
 MIDL_INTERFACE("fd0bca13-5cb6-4c3a-987e-4750de2ca791")
@@ -183,22 +187,10 @@ ID3D11VkExtContext1 : public ID3D11VkExtContext {
         uint32_t numWriteResources) = 0;
 };
 
-MIDL_INTERFACE("6e65f21a-0ecd-4e76-8faf-9e9afa4093a4")
-ID3D11VkExtContext2 : public ID3D11VkExtContext1 {
-
-    virtual bool STDMETHODCALLTYPE MarkRenderStartLFX2(
-        void*                   lfx2Frame) = 0;
-
-    virtual bool STDMETHODCALLTYPE MarkRenderEndLFX2(
-        void*                   lfx2Frame) = 0;
-
-};
-
 DXVK_DEFINE_GUID(IDXGIVkInteropFactory)
 DXVK_DEFINE_GUID(IDXGIVkInteropAdapter)
 DXVK_DEFINE_GUID(ID3D11VkExtDevice)
 DXVK_DEFINE_GUID(ID3D11VkExtDevice1)
-DXVK_DEFINE_GUID(ID3D11VkExtDevice2)
+DXVK_DEFINE_GUID(ID3DLfx2ExtDevice)
 DXVK_DEFINE_GUID(ID3D11VkExtContext)
 DXVK_DEFINE_GUID(ID3D11VkExtContext1)
-DXVK_DEFINE_GUID(ID3D11VkExtContext2)

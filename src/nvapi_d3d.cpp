@@ -2,7 +2,6 @@
 #include "nvapi_globals.h"
 #include "util/util_statuscode.h"
 #include "dxvk/dxvk_interfaces.h"
-#include "d3d11/nvapi_d3d11_device.h"
 #include "d3d12/nvapi_d3d12_device.h"
 
 extern "C" {
@@ -120,13 +119,9 @@ extern "C" {
 
         nvapiD3dInstance->GetLfx2Instance()->Sleep();
         if (nvapiD3dInstance->IsReflexEnabled() && !nvapiD3dInstance->UseLatencyMarkers()) {
-            auto d3d11Device = NvapiD3d11Device::GetLfx2DeviceExt(pDevice);
-            if (d3d11Device.ptr()) {
-                nvapiD3dInstance->GetLfx2Instance()->SleepImplicit(d3d11Device);
-            }
-            else {
-                auto d3d12Device = NvapiD3d12Device::GetLfx2DeviceExt(pDevice);
-                nvapiD3dInstance->GetLfx2Instance()->SleepImplicit(d3d12Device);
+            auto lfx2Ext = nvapiD3dInstance->GetLfx2DeviceExt(pDevice);
+            if (lfx2Ext.ptr()) {
+                nvapiD3dInstance->GetLfx2Instance()->SleepImplicit(lfx2Ext);
             }
         }
 
@@ -146,12 +141,9 @@ extern "C" {
         if (!nvapiD3dInstance->IsReflexAvailable())
             return NoImplementation(n, alreadyLoggedNoLfx);
 
-        Com<ID3D11VkExtContext2> context = NvapiD3d11Device::GetLfx2DeviceContext(pDevice);
-        if (!context.ptr()) {
-            auto d3d12Device = NvapiD3d12Device::GetLfx2DeviceExt(pDevice);
-            if (!d3d12Device.ptr())
-                return NoImplementation(n, alreadyLoggedNoLfx);
-        }
+        Com<ID3DLfx2ExtDevice> context = nvapiD3dInstance->GetLfx2DeviceExt(pDevice);
+        if (!context.ptr())
+            return NoImplementation(n, alreadyLoggedNoLfx);
 
         nvapiD3dInstance->SetReflexEnabled(pSetSleepModeParams->bLowLatencyMode);
 
@@ -185,8 +177,7 @@ extern "C" {
         if (pSetLatencyMarkerParams->version != NV_LATENCY_MARKER_PARAMS_VER1)
             return IncompatibleStructVersion(__func__);
 
-        Com<ID3D11VkExtContext2> context = NvapiD3d11Device::GetLfx2DeviceContext(pDev);
-
+        Com<ID3DLfx2ExtDevice> context = nvapiD3dInstance->GetLfx2DeviceExt(pDev);
         Lfx2* lfx2 = nvapiD3dInstance->GetLfx2Instance();
         lfx2->Mark(pSetLatencyMarkerParams->frameID, pSetLatencyMarkerParams->markerType, context);
 
