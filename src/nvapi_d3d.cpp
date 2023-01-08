@@ -155,7 +155,7 @@ extern "C" {
 
         nvapiD3dInstance->SetReflexEnabled(pSetSleepModeParams->bLowLatencyMode);
 
-        return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? (str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us/Markers ", pSetSleepModeParams->bUseMarkersToOptimize ? "On" : "Off")) : "Disabled", ")"));
+        return Ok(str::format(n, " (", pSetSleepModeParams->bLowLatencyMode ? str::format("Enabled/", pSetSleepModeParams->minimumIntervalUs, "us") : "Disabled", ")"));
     }
 
     NvAPI_Status __cdecl NvAPI_D3D_GetSleepStatus(IUnknown* pDevice, NV_GET_SLEEP_STATUS_PARAMS* pGetSleepStatusParams) {
