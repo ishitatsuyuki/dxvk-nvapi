@@ -14,9 +14,8 @@ namespace dxvk {
 
         [[nodiscard]] virtual bool IsAvailable() const;
         virtual void Sleep();
-        virtual void SleepImplicit(Com<ID3D11VkExtDevice2> &d3d11Device);
-        virtual void SleepImplicit(Com<ID3D12DeviceLfx2> &d3d12Device);
-        virtual void Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3D11VkExtContext2> &d3d11Context);
+        virtual void SleepImplicit(Com<ID3DLfx2ExtDevice>& extDevice);
+        virtual void Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3DLfx2ExtDevice> &extDevice);
 
       private:
 #define DECLARE_PFN(x) \

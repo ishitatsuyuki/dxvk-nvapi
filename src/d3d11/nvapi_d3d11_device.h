@@ -24,9 +24,6 @@ namespace dxvk {
         static bool CreateSamplerStateAndGetDriverHandle(ID3D11Device* pDevice, const D3D11_SAMPLER_DESC* pSamplerDesc, ID3D11SamplerState** ppSamplerState, uint32_t* pDriverHandle);
         static bool IsFatbinPTXSupported(ID3D11Device* pDevice);
 
-        [[nodiscard]] static Com<ID3D11VkExtContext2> GetLfx2DeviceContext(IUnknown* deviceOrContext);
-        [[nodiscard]] static Com<ID3D11VkExtDevice2> GetLfx2DeviceExt(IUnknown* deviceOrContext);
-
       private:
         inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_depthBoundsDeviceOrContextMap;
         inline static std::unordered_map<IUnknown*, ID3D11VkExtContext*> m_barrierControlDeviceOrContextMap;

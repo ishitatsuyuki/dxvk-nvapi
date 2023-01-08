@@ -34,4 +34,20 @@ namespace dxvk {
     bool NvapiD3dInstance::UseLatencyMarkers() const {
         return m_useLatencyMarkers;
     }
+
+    Com<ID3DLfx2ExtDevice> NvapiD3dInstance::GetLfx2DeviceExt(IUnknown* pDevice) {
+        static std::mutex map_mutex;
+        static std::unordered_map<IUnknown*, ID3DLfx2ExtDevice*> cacheMap;
+
+        std::scoped_lock lock(map_mutex);
+        auto it = cacheMap.find(pDevice);
+        if (it != cacheMap.end())
+            return it->second;
+        Com<ID3DLfx2ExtDevice> lfx2Device;
+        if (FAILED(pDevice->QueryInterface(IID_PPV_ARGS(&lfx2Device))))
+            lfx2Device = nullptr;
+
+        cacheMap.emplace(pDevice, lfx2Device.ptr());
+        return lfx2Device;
+    }
 }

@@ -69,9 +69,7 @@ namespace dxvk {
         // Sleep called without recording frame timing, skip
     }
 
-    void Lfx2::Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3D11VkExtContext2>& d3d11Context) {
-        log::write(str::format("mark, frame_id: ", frame_id, ", type: ", type));
-
+    void Lfx2::Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3DLfx2ExtDevice> &extDevice) {
         uint32_t section;
         lfx2MarkType markType;
         switch (type) {
@@ -110,7 +108,6 @@ namespace dxvk {
                     FrameRelease(i->second);
                     m_callsExpectedByFrame.erase(i->first);
                     i = m_frameMap.erase(i);
-                    log::write(str::format("forced destroy, frame_id: ", frame_id, ", type: ", type));
                 }
             }
         } else {
@@ -122,11 +119,11 @@ namespace dxvk {
 
         MarkSection(frame, section, markType, TimestampNow());
 
-        if (d3d11Context.ptr()) {
+        if (extDevice.ptr()) {
             if (type == RENDERSUBMIT_START) {
-                d3d11Context->MarkRenderStartLFX2((void*)frame);
+                extDevice->MarkRenderStart((void*)frame);
             } else if (type == RENDERSUBMIT_END) {
-                d3d11Context->MarkRenderEndLFX2((void*)frame);
+                extDevice->MarkRenderEnd((void*)frame);
             }
         }
 
@@ -135,7 +132,6 @@ namespace dxvk {
             FrameRelease(frame);
             m_frameMap.erase(frame_id);
             m_callsExpectedByFrame.erase(frame_id);
-            log::write(str::format("destroy, frame_id: ", frame_id, ", type: ", type));
         }
     }
 
@@ -146,21 +142,11 @@ namespace dxvk {
         }
     }
 
-    void Lfx2::SleepImplicit(Com<ID3D11VkExtDevice2>& d3d11Device) {
-        lfx2Timestamp sleepTarget;
-        lfx2Frame* implicitFrame = FrameCreateImplicit(static_cast<lfx2ImplicitContext*>(d3d11Device->GetImplicitContextLFX2()), &sleepTarget);
-
-        SleepUntil(sleepTarget);
-        MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeBegin, TimestampNow());
-        MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeEnd, TimestampNow());
-        FrameRelease(implicitFrame);
-    }
-
-    void Lfx2::SleepImplicit(Com<ID3D12DeviceLfx2>& d3d12Device) {
+    void Lfx2::SleepImplicit(Com<ID3DLfx2ExtDevice>& extDevice) {
         lfx2Timestamp sleepTarget;
         lfx2Frame* implicitFrame;
+        extDevice->ImplicitBeginFrame(&sleepTarget, reinterpret_cast<void**>(&implicitFrame));
 
-        d3d12Device->EnqueueFrameLFX2(&sleepTarget, reinterpret_cast<void**>(&implicitFrame));
         SleepUntil(sleepTarget);
         MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeBegin, TimestampNow());
         MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeEnd, TimestampNow());
