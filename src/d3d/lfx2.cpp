@@ -70,6 +70,9 @@ namespace dxvk {
     }
 
     void Lfx2::Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3DLfx2ExtDevice> &extDevice) {
+        if (!m_lfxContext)
+            return;
+
         uint32_t section;
         lfx2MarkType markType;
         switch (type) {
