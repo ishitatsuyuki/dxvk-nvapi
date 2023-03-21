@@ -38,19 +38,19 @@ namespace dxvk {
         LOAD_PFN(FrameDequeueImplicit);
 
 #undef LOAD_PFN
-
-        m_lfxContext = ContextCreate();
     }
 
     Lfx2::~Lfx2() {
-        if (m_lfxContext)
-            ContextRelease(m_lfxContext);
-
         if (m_lfxModule == nullptr)
             return;
 
+        if (m_nextFrame)
+            FrameRelease(m_nextFrame);
+
+        if (m_lfxContext)
+            ContextRelease(m_lfxContext);
+
         ::FreeLibrary(m_lfxModule);
-        m_lfxModule = nullptr;
     }
 
     bool Lfx2::IsAvailable() const {
@@ -66,7 +66,7 @@ namespace dxvk {
 
             SleepUntil(sleepTarget);
         }
-        // Sleep called without recording frame timing, skip
+        // Else: Sleep was called without recording frame timing, skip
     }
 
     void Lfx2::Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3DLfx2ExtDevice> &extDevice) {
@@ -151,6 +151,19 @@ namespace dxvk {
         MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeBegin, TimestampNow());
         MarkSection(implicitFrame, 0, lfx2MarkType::lfx2MarkTypeEnd, TimestampNow());
         FrameRelease(implicitFrame);
+    }
+
+    void Lfx2::SetEnabled(bool enabled) {
+        if (enabled && !m_lfxContext) {
+            m_lfxContext = ContextCreate();
+        } else if (!enabled && m_lfxContext) {
+            if (m_nextFrame) {
+                FrameRelease(m_nextFrame);
+                m_nextFrame = nullptr;
+            }
+            ContextRelease(m_lfxContext);
+            m_lfxContext = nullptr;
+        }
     }
 
     template <typename T>

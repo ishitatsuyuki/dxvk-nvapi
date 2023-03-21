@@ -29,6 +29,7 @@ namespace dxvk {
 
     void NvapiD3dInstance::SetReflexEnabled(bool value) {
         m_isLfxEnabled = value;
+        m_lfx->SetEnabled(value);
     }
 
     bool NvapiD3dInstance::UseLatencyMarkers() const {

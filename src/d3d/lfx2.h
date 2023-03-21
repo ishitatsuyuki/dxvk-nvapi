@@ -16,6 +16,7 @@ namespace dxvk {
         virtual void Sleep();
         virtual void SleepImplicit(Com<ID3DLfx2ExtDevice>& extDevice);
         virtual void Mark(uint64_t frame_id, NV_LATENCY_MARKER_TYPE type, Com<ID3DLfx2ExtDevice> &extDevice);
+        virtual void SetEnabled(bool enabled);
 
       private:
 #define DECLARE_PFN(x) \
