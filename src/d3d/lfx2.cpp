@@ -59,7 +59,7 @@ namespace dxvk {
 
     void Lfx2::Sleep() {
         std::unique_lock<std::mutex> lock(m_frameMapMutex);
-        if (!m_nextFrame) {
+        if (m_lfxContext && !m_nextFrame) {
             lfx2Timestamp sleepTarget;
             m_nextFrame = FrameCreate(m_lfxContext, &sleepTarget);
             lock.unlock();
